@@ -3,179 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Policy Analytics Dashboard</title>
-
-    <!-- Dependencies -->
+    <title>Policy Analytics Dashboard</title>
     <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-    <script src="https://unpkg.com/@material-ui/core@4.12.4/umd/material-ui.development.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
     <style>
-        body { margin: 0; padding: 0; background-color: #f3f4f6; }
-        .dashboard-container { max-width: 1600px; margin: 0 auto; padding: 20px; }
-        .chart-container { min-height: 400px; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f3f4f6;
+        }
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        // Main App Component
+    <script>
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+
         function App() {
-            const { LineChart, Line, BarChart, Bar, PieChart, Pie, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } = Recharts;
-            const { Button, Slider, Select, MenuItem, Tabs, Tab } = MaterialUI;
+            const data = [
+                { year: 2024, emissions: 65, costs: 40, innovation: 24 },
+                { year: 2025, emissions: 58, costs: 45, innovation: 30 },
+                { year: 2026, emissions: 50, costs: 48, innovation: 35 },
+                { year: 2027, emissions: 45, costs: 50, innovation: 40 },
+                { year: 2028, emissions: 40, costs: 52, innovation: 45 }
+            ];
 
-            // State Management
-            const [selectedTab, setSelectedTab] = React.useState(0);
-            const [selectedSector, setSelectedSector] = React.useState('agrifood');
-            const [timeRange, setTimeRange] = React.useState([2024, 2050]);
-            const [scenarios, setScenarios] = React.useState(['Baseline', 'Aggressive', 'Conservative']);
-            const [activeScenario, setActiveScenario] = React.useState('Baseline');
-            const [showML, setShowML] = React.useState(false);
-
-            // Data Generators
-            const generateTimeSeriesData = () => {
-                return Array.from({ length: 20 }, (_, i) => ({
-                    year: 2024 + i,
-                    actual: Math.random() * 100,
-                    predicted: Math.random() * 100 * 1.1,
-                    confidence: 0.95 - (i * 0.02)
-                }));
-            };
-
-            const generateScenarioData = () => {
-                return scenarios.map(scenario => ({
-                    name: scenario,
-                    impact: Math.random() * 100,
-                    risk: Math.random() * 100,
-                    opportunity: Math.random() * 100
-                }));
-            };
-
-            // Export Function
-            const exportToPowerPoint = () => {
-                const dashboard = document.getElementById('dashboard-container');
-                const htmlContent = `
-                    <!DOCTYPE html>
-                    <html>
-                        <head>
-                            <title>Interactive Dashboard</title>
-                            ${document.head.innerHTML}
-                        </head>
-                        <body>
-                            ${dashboard.innerHTML}
-                            <script>
-                                ${document.querySelector('script[type="text/babel"]').innerHTML}
-                            </script>
-                        </body>
-                    </html>
-                `;
-
-                const blob = new Blob([htmlContent], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'dashboard.html';
-                a.click();
-            };
-
-            // Dashboard Components
-            const MLPredictionChart = () => (
-                <div className="bg-white p-4 rounded-lg shadow">
-                    <h3 className="text-lg font-semibold mb-4">ML-Based Impact Prediction</h3>
-                    <ResponsiveContainer width="100%" height={400}>
-                        <AreaChart data={generateTimeSeriesData()}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="year" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Area type="monotone" dataKey="actual" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                            <Area type="monotone" dataKey="predicted" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-            );
-
-            const ScenarioComparison = () => (
-                <div className="bg-white p-4 rounded-lg shadow">
-                    <h3 className="text-lg font-semibold mb-4">Scenario Comparison</h3>
-                    <div className="flex gap-2 mb-4">
-                        {scenarios.map(scenario => (
-                            <Button
-                                key={scenario}
-                                variant={activeScenario === scenario ? "contained" : "outlined"}
-                                onClick={() => setActiveScenario(scenario)}
-                                size="small"
-                            >
-                                {scenario}
-                            </Button>
-                        ))}
-                    </div>
-                    <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={generateScenarioData()}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="impact" fill="#8884d8" />
-                            <Bar dataKey="risk" fill="#82ca9d" />
-                            <Bar dataKey="opportunity" fill="#ffc658" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            );
-
-            return (
-                <div className="dashboard-container" id="dashboard-container">
-                    {/* Header */}
-                    <div className="bg-white p-4 rounded-lg shadow mb-4 flex items-center gap-4">
-                        <Select
-                            value={selectedSector}
-                            onChange={(e) => setSelectedSector(e.target.value)}
-                            size="small"
-                            className="w-48"
-                        >
-                            <MenuItem value="agrifood">Agriculture & Food</MenuItem>
-                            <MenuItem value="energy">Energy & Resources</MenuItem>
-                            <MenuItem value="manufacturing">Manufacturing</MenuItem>
-                        </Select>
-
-                        <div className="flex-1">
-                            <Slider
-                                value={timeRange}
-                                onChange={(e, newValue) => setTimeRange(newValue)}
-                                valueLabelDisplay="auto"
-                                min={2024}
-                                max={2050}
-                            />
-                        </div>
-
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={exportToPowerPoint}
-                            size="small"
-                        >
-                            Export to PowerPoint
-                        </Button>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <MLPredictionChart />
-                        <ScenarioComparison />
-                    </div>
-                </div>
+            return React.createElement(
+                "div",
+                { className: "p-4 bg-gray-100 min-h-screen" },
+                React.createElement(
+                    "div",
+                    { className: "bg-white rounded-lg shadow p-6 mb-6" },
+                    React.createElement("h1", { className: "text-2xl font-bold mb-4" }, "Policy Impact Dashboard"),
+                    React.createElement(
+                        "div",
+                        { className: "h-[400px]" },
+                        React.createElement(
+                            ResponsiveContainer,
+                            { width: "100%", height: 400 },
+                            React.createElement(
+                                LineChart,
+                                { data: data },
+                                React.createElement(CartesianGrid, { strokeDasharray: "3 3" }),
+                                React.createElement(XAxis, { dataKey: "year" }),
+                                React.createElement(YAxis, null),
+                                React.createElement(Tooltip, null),
+                                React.createElement(Legend, null),
+                                React.createElement(Line, { type: "monotone", dataKey: "emissions", stroke: "#ff0000", name: "Emissions" }),
+                                React.createElement(Line, { type: "monotone", dataKey: "costs", stroke: "#00ff00", name: "Costs" }),
+                                React.createElement(Line, { type: "monotone", dataKey: "innovation", stroke: "#0000ff", name: "Innovation" })
+                            )
+                        )
+                    )
+                )
             );
         }
 
-        // Render the App
-        ReactDOM.render(<App />, document.getElementById('root'));
+        ReactDOM.render(React.createElement(App), document.getElementById("root"));
     </script>
 </body>
 </html>
